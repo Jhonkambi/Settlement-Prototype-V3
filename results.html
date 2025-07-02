@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz Results</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #003865 0%, #004c8a 100%);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #218838;
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #545b62;
+      transform: translateY(-1px);
+    }
+    
+    .stats-container {
+      padding: 20px;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 5px solid #003865;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      color: #003865;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #003865;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+      transition: width 0.8s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    
+    .results-content {
+      padding: 20px;
+    }
+    
+    .quiz-result {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .quiz-header {
+      background: linear-gradient(135deg, #003865 0%, #004c8a 100%);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .quiz-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 0;
+    }
+    
+    .quiz-score {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    .question-list {
+      padding: 0;
+    }
+    
+    .question-item {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 15px 20px;
+      transition: background-color 0.2s;
+    }
+    
+    .question-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .question-item:last-child {
+      border-bottom: none;
+    }
+    
+    .question-text {
+      font-weight: bold;
+      color: #003865;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    
+    .answer-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 8px;
+    }
+    
+    .answer-section {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .answer-label {
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .answer-text {
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+    }
+    
+    .user-answer {
+      background-color: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+    
+    .correct-answer {
+      background-color: #e8f5e9;
+      border-left: 4px solid #4caf50;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-correct {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .status-incorrect {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .status-void {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .download-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      min-width: 300px;
+    }
+    
+    .modal-header {
+      margin-bottom: 20px;
+    }
+    
+    .modal-title {
+      margin: 0;
+      color: #003865;
+      font-size: 18px;
+    }
+    
+    .download-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .download-option {
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .download-option:hover {
+      border-color: #003865;
+      background-color: #f8f9fa;
+    }
+    
+    .download-option.selected {
+      border-color: #003865;
+      background-color: #e3f2fd;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    
+    .no-results h2 {
+      color: #003865;
+      margin-bottom: 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .answer-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+    }
+    
+    .summary-stats {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 5px solid #28a745;
+    }
+    
+    .summary-title {
+      color: #003865;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .summary-item {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .summary-number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #003865;
+    }
+    
+    .summary-text {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Quiz Results</h1>
+      <div class="header-buttons">
+        <button class="btn btn-primary" id="downloadBtn">📥 Download Results</button>
+        <button class="btn btn-secondary" id="homeBtn">🏠 Back to Home</button>
+      </div>
+    </div>
+    
+    <div class="stats-container">
+      <div class="summary-stats">
+        <div class="summary-title">Overall Performance Summary</div>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-number" id="totalQuizzes">0</div>
+            <div class="summary-text">Quizzes Taken</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="totalQuestions">0</div>
+            <div class="summary-text">Total Questions</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="totalCorrect">0</div>
+            <div class="summary-text">Correct Answers</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="totalVoid">0</div>
+            <div class="summary-text">Void Answers</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="overallPercentage">0%</div>
+            <div class="summary-text">Overall Score</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Performance Score</h3>
+          <div class="stat-value" id="performanceScore">0%</div>
+          <div class="stat-label">Average accuracy across all quizzes</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="performanceProgress" style="width: 0%;">0%</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <h3>Completion Rate</h3>
+          <div class="stat-value" id="completionRate">0%</div>
+          <div class="stat-label">Questions answered vs total questions</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="completionProgress" style="width: 0%;">0%</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <h3>Best Quiz Score</h3>
+          <div class="stat-value" id="bestScore">0%</div>
+          <div class="stat-label" id="bestQuizName">No quizzes completed</div>
+        </div>
+        
+        <div class="stat-card">
+          <h3>Time Taken</h3>
+          <div class="stat-value" id="timeTaken">--:--</div>
+          <div class="stat-label">Total time spent on quizzes</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="results-content">
+      <div id="resultsContainer"></div>
+      
+      <div class="no-results" id="noResults" style="display: none;">
+        <h2>No Results Found</h2>
+        <p>It looks like you haven't completed any quizzes yet.</p>
+        <button class="btn btn-primary" onclick="window.location.href='quiz.html'">Take a Quiz</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Download Modal -->
+  <div class="download-modal" id="downloadModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Download Quiz Results</h3>
+      </div>
+      <div class="download-options">
+        <div class="download-option" data-format="pdf">
+          <span>📄</span>
+          <div>
+            <strong>PDF Report</strong>
+            <div style="font-size: 11px; color: #666;">Formatted report with all details</div>
+          </div>
+        </div>
+        <div class="download-option" data-format="excel">
+          <span>📊</span>
+          <div>
+            <strong>Excel Spreadsheet</strong>
+            <div style="font-size: 11px; color: #666;">Data in spreadsheet format</div>
+          </div>
+        </div>
+        <div class="download-option" data-format="csv">
+          <span>📋</span>
+          <div>
+            <strong>CSV File</strong>
+            <div style="font-size: 11px; color: #666;">Simple comma-separated values</div>
+          </div>
+        </div>
+        <div class="download-option" data-format="json">
+          <span>🔧</span>
+          <div>
+            <strong>JSON Data</strong>
+            <div style="font-size: 11px; color: #666;">Raw data for developers</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelDownload">Cancel</button>
+        <button class="btn btn-primary" id="confirmDownload">Download</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let quizResults = [];
+    let selectedFormat = null;
+    
+    // Load and display results
+    document.addEventListener('DOMContentLoaded', () => {
+      loadQuizResults();
+      setupEventListeners();
+    });
+    
+    function setupEventListeners() {
+      document.getElementById('downloadBtn').addEventListener('click', showDownloadModal);
+      document.getElementById('cancelDownload').addEventListener('click', hideDownloadModal);
+      document.getElementById('confirmDownload').addEventListener('click', downloadResults);
+      
+      // Home button functionality
+      document.getElementById('homeBtn').addEventListener('click', clearProgressAndRedirect);
+    }
+    
+    function clearProgressAndRedirect() {
+      // Clear specific items from localStorage
+      localStorage.removeItem('quizProgress'); // Clear quiz progress
+      localStorage.removeItem('quizHistory'); // Clear quiz results
+      
+      // Redirect to home page
+      window.location.href = 'index.html';
+    }
+    
+    function loadQuizResults() {
+      try {
+        const results = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+        quizResults = results;
+        
+        if (results.length === 0) {
+          document.getElementById('noResults').style.display = 'block';
+          return;
+        }
+        
+        calculateOverallStats(results);
+        displayResults(results);
+      } catch (error) {
+        console.error('Error loading quiz results:', error);
+        document.getElementById('noResults').style.display = 'block';
+      }
+    }
+    
+    function calculateOverallStats(results) {
+      const totalQuizzes = results.length;
+      let totalQuestions = 0;
+      let totalCorrect = 0;
+      let totalVoid = 0;
+      let bestScore = 0;
+      let bestQuizName = '';
+      
+      results.forEach(result => {
+        totalQuestions += result.totalQuestions;
+        totalCorrect += result.score;
+        totalVoid += result.voidCount || 0;
+        
+        if (result.percentage > bestScore) {
+          bestScore = result.percentage;
+          bestQuizName = result.quizTitle;
+        }
+      });
+      
+      const overallPercentage = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+      const completionRate = 100; // All loaded results are completed
+      
+      // Update summary stats
+      document.getElementById('totalQuizzes').textContent = totalQuizzes;
+      document.getElementById('totalQuestions').textContent = totalQuestions;
+      document.getElementById('totalCorrect').textContent = totalCorrect;
+      document.getElementById('totalVoid').textContent = totalVoid;
+      document.getElementById('overallPercentage').textContent = overallPercentage + '%';
+      
+      // Update detailed stats
+      document.getElementById('performanceScore').textContent = overallPercentage + '%';
+      document.getElementById('completionRate').textContent = completionRate + '%';
+      document.getElementById('bestScore').textContent = bestScore + '%';
+      document.getElementById('bestQuizName').textContent = bestQuizName || 'No quizzes completed';
+      
+      // Update progress bars
+      setTimeout(() => {
+        document.getElementById('performanceProgress').style.width = overallPercentage + '%';
+        document.getElementById('performanceProgress').textContent = overallPercentage + '%';
+        document.getElementById('completionProgress').style.width = completionRate + '%';
+        document.getElementById('completionProgress').textContent = completionRate + '%';
+      }, 500);
+      
+      // Calculate time taken (if available)
+      const firstResult = results[0];
+      if (firstResult && firstResult.dateTaken) {
+        document.getElementById('timeTaken').textContent = 'Completed';
+      }
+    }
+    
+    function displayResults(results) {
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '';
+      
+      results.forEach((result, index) => {
+        const quizDiv = document.createElement('div');
+        quizDiv.className = 'quiz-result';
+        
+        quizDiv.innerHTML = `
+          <div class="quiz-header">
+            <h3 class="quiz-title">${result.quizTitle}</h3>
+            <div class="quiz-score">${result.score}/${result.totalQuestions} (${result.percentage}%)</div>
+          </div>
+          <div class="question-list" id="questions-${index}"></div>
+        `;
+        
+        container.appendChild(quizDiv);
+        
+        // Add questions
+        const questionsList = document.getElementById(`questions-${index}`);
+        result.results.forEach((questionResult, qIndex) => {
+          const questionDiv = document.createElement('div');
+          questionDiv.className = 'question-item';
+          
+          const statusClass = questionResult.isVoid ? 'status-void' : 
+                             (questionResult.isCorrect ? 'status-correct' : 'status-incorrect');
+          const statusText = questionResult.isVoid ? 'Void' : 
+                            (questionResult.isCorrect ? 'Correct' : 'Incorrect');
+          
+          questionDiv.innerHTML = `
+            <div class="question-text">
+              ${qIndex + 1}. ${questionResult.question}
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <div class="answer-row">
+              <div class="answer-section">
+                <div class="answer-label">Your Answer:</div>
+                <div class="answer-text user-answer">${questionResult.userAnswer}</div>
+              </div>
+              <div class="answer-section">
+                <div class="answer-label">Correct Answer:</div>
+                <div class="answer-text correct-answer">${questionResult.correctAnswer}</div>
+              </div>
+            </div>
+          `;
+          
+          questionsList.appendChild(questionDiv);
+        });
+      });
+    }
+    
+    function showDownloadModal() {
+      document.getElementById('downloadModal').style.display = 'block';
+    }
+    
+    function hideDownloadModal() {
+      document.getElementById('downloadModal').style.display = 'none';
+      selectedFormat = null;
+      document.querySelectorAll('.download-option').forEach(opt => opt.classList.remove('selected'));
+    }
+    
+    function downloadResults() {
+      if (!selectedFormat) {
+        alert('Please select a download format');
+        return;
+      }
+      
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `quiz-results-${timestamp}`;
+      
+      switch (selectedFormat) {
+        case 'pdf':
+          downloadAsPDF(filename);
+          break;
+        case 'excel':
+          downloadAsExcel(filename);
+          break;
+        case 'csv':
+          downloadAsCSV(filename);
+          break;
+        case 'json':
+          downloadAsJSON(filename);
+          break;
+      }
+      
+      hideDownloadModal();
+    }
+    
+    function downloadAsJSON(filename) {
+      const dataStr = JSON.stringify(quizResults, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename + '.json';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    function downloadAsCSV(filename) {
+      let csvContent = 'Quiz Title,Question,Your Answer,Correct Answer,Status,Is Correct\n';
+      
+      quizResults.forEach(result => {
+        result.results.forEach(questionResult => {
+          const row = [
+            `"${result.quizTitle}"`,
+            `"${questionResult.question}"`,
+            `"${questionResult.userAnswer}"`,
+            `"${questionResult.correctAnswer}"`,
+            questionResult.isVoid ? 'Void' : (questionResult.isCorrect ? 'Correct' : 'Incorrect'),
+            questionResult.isCorrect
+          ].join(',');
+          csvContent += row + '\n';
+        });
+      });
+      
+      const dataBlob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename + '.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadAsExcel(filename) {
+      // This is a simple implementation; for a real Excel file, consider using a library like SheetJS
+      let excelContent = 'Quiz Title\tQuestion\tYour Answer\tCorrect Answer\tStatus\n';
+      
+      quizResults.forEach(result => {
+        result.results.forEach(questionResult => {
+          const row = [
+            result.quizTitle,
+            questionResult.question,
+            questionResult.userAnswer,
+            questionResult.correctAnswer,
+            questionResult.isVoid ? 'Void' : (questionResult.isCorrect ? 'Correct' : 'Incorrect')
+          ].join('\t');
+          excelContent += row + '\n';
+        });
+      });
+      
+      const dataBlob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename + '.xls';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadAsPDF(filename) {
+      // For PDF generation, consider using a library like jsPDF
+      alert('PDF download functionality is not implemented yet.');
+    }
+
+  </script>
+</body>
+</html>

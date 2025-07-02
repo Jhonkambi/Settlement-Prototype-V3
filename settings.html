@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Settings</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #003366;
+      --secondary-color: #0066cc;
+      --background-color: #f8f9fa;
+    }
+    
+    body {
+      background-color: var(--background-color);
+      font-family: Arial, sans-serif;
+    }
+    
+    .main-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    
+    .card {
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: bold;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .quiz-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .form-section {
+      margin-bottom: 15px;
+    }
+    
+    .file-input {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Quiz Settings</h2>
+      <a href="index.html" class="btn btn-outline-secondary">Back to Home</a>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Manage Categories</div>
+      <div class="card-body">
+        <div class="form-section">
+          <label class="form-label" for="categoryName">Category Name</label>
+          <div class="input-group mb-3">
+            <input type="text" id="categoryName" class="form-control" placeholder="Enter category name" required>
+            <button id="addCategoryBtn" class="btn btn-primary">Add</button>
+          </div>
+        </div>
+        
+        <div id="categoryList">
+          <!-- Categories will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Quiz Management</div>
+      <div class="card-body">
+        <div class="d-flex gap-2 mb-3">
+          <button id="addQuizBtn" class="btn btn-primary">Add New Quiz</button>
+          <button id="importBtn" class="btn btn-outline-primary">Import Quizzes</button>
+          <input type="file" id="importFileInput" class="file-input" accept=".json">
+          <button id="exportBtn" class="btn btn-outline-primary">Export Quizzes</button>
+        </div>
+        
+        <div id="quizList">
+          <!-- Quizzes will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Quiz Modal -->
+    <div class="modal fade" id="addQuizModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Quiz</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="quizForm">
+              <div class="mb-3">
+                <label class="form-label" for="quizTitle">Quiz Title</label>
+                <input type="text" id="quizTitle" class="form-control" required>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" for="quizCategory">Category</label>
+                <select id="quizCategory" class="form-select" required>
+                  <option value="">Select a category</option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" for="quizDescription">Description (Optional)</label>
+                <textarea id="quizDescription" class="form-control" rows="2"></textarea>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" for="quizDateTime">Date and Time</label>
+                <input type="datetime-local" id="quizDateTime" class="form-control" required>
+              </div>
+              
+              <div id="questionsContainer">
+                <!-- Questions will be added here -->
+              </div>
+              
+              <button type="button" id="addQuestionBtn" class="btn btn-sm btn-outline-primary mt-2">
+                Add Question
+              </button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="saveQuizBtn" class="btn btn-primary">Save Quiz</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Global Variables
+    let quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    let categories = JSON.parse(localStorage.getItem('categories') || '["General"]');
+    let currentEditingQuiz = null;
+
+    // DOM Elements
+    const DOM = {
+      categoryName: document.getElementById('categoryName'),
+      addCategoryBtn: document.getElementById('addCategoryBtn'),
+      categoryList: document.getElementById('categoryList'),
+      addQuizBtn: document.getElementById('addQuizBtn'),
+      importBtn: document.getElementById('importBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      importFileInput: document.getElementById('importFileInput'),
+      quizList: document.getElementById('quizList'),
+      quizForm: document.getElementById('quizForm'),
+      quizTitle: document.getElementById('quizTitle'),
+      quizCategory: document.getElementById('quizCategory'),
+      quizDescription: document.getElementById('quizDescription'),
+      quizDateTime: document.getElementById('quizDateTime'),
+      questionsContainer: document.getElementById('questionsContainer'),
+      addQuestionBtn: document.getElementById('addQuestionBtn'),
+      saveQuizBtn: document.getElementById('saveQuizBtn'),
+      addQuizModal: new bootstrap.Modal(document.getElementById('addQuizModal'))
+    };
+
+    // Initialize
+    function init() {
+      loadCategories();
+      loadQuizzes();
+      setupEventListeners();
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+      DOM.addCategoryBtn.addEventListener('click', addCategory);
+      DOM.addQuizBtn.addEventListener('click', showAddQuizModal);
+      DOM.importBtn.addEventListener('click', () => DOM.importFileInput.click());
+      DOM.exportBtn.addEventListener('click', exportQuizzes);
+      DOM.importFileInput.addEventListener('change', handleFileImport);
+      DOM.addQuestionBtn.addEventListener('click', addQuestion);
+      DOM.saveQuizBtn.addEventListener('click', saveQuiz);
+    }
+
+    // Category Functions
+    function loadCategories() {
+      DOM.categoryList.innerHTML = '';
+      categories.forEach((category, index) => {
+        const categoryElement = document.createElement('div');
+        categoryElement.className = 'quiz-item';
+        categoryElement.innerHTML = `
+          <input type="text" id="category-${index}" class="form-control" value="${category}" onchange="updateCategory(${index}, this.value)" required>
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${index})">Delete</button>
+          </div>
+        `;
+        DOM.categoryList.appendChild(categoryElement);
+      });
+    }
+
+    function addCategory() {
+      const name = DOM.categoryName.value.trim();
+      if (!name) return;
+      
+      if (!categories.includes(name)) {
+        categories.push(name);
+        saveCategories();
+        loadCategories();
+        DOM.categoryName.value = '';
+      } else {
+        alert('Category already exists');
+      }
+    }
+
+    function updateCategory(index, newName) {
+      categories[index] = newName;
+      saveCategories();
+    }
+
+    function deleteCategory(index) {
+      if (quizzes.some(quiz => quiz.category === categories[index])) {
+        alert('Cannot delete - category is in use by quizzes');
+        return;
+      }
+      if (confirm(`Delete category "${categories[index]}"?`)) {
+        categories.splice(index, 1);
+        saveCategories();
+        loadCategories();
+      }
+    }
+
+    function saveCategories() {
+      localStorage.setItem('categories', JSON.stringify(categories));
+    }
+
+    // Quiz Functions
+    function loadQuizzes() {
+      DOM.quizList.innerHTML = '';
+      quizzes.forEach((quiz, index) => {
+        const quizElement = document.createElement('div');
+        quizElement.className = 'quiz-item';
+        quizElement.innerHTML = `
+          <div>
+            <strong>${quiz.title}</strong>
+            <div class="text-muted small">${quiz.category} | ${quiz.questions.length} questions | Scheduled: ${new Date(quiz.dateTime).toLocaleString()}</div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary" onclick="editQuiz(${index})">Edit</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteQuiz(${index})">Delete</button>
+          </div>
+        `;
+        DOM.quizList.appendChild(quizElement);
+      });
+    }
+
+    function showAddQuizModal() {
+      currentEditingQuiz = null;
+      DOM.quizForm.reset();
+      DOM.questionsContainer.innerHTML = '';
+      loadCategoryDropdown();
+      DOM.addQuizModal.show();
+    }
+
+    function loadCategoryDropdown() {
+      DOM.quizCategory.innerHTML = '<option value="">Select a category</option>';
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        DOM.quizCategory.appendChild(option);
+      });
+    }
+
+    function addQuestion() {
+      const questionCount = DOM.questionsContainer.children.length + 1;
+      const questionHTML = `
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            Question ${questionCount}
+            <button type="button" class="btn-close" onclick="this.parentNode.parentNode.remove()"></button>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label" for="questionText${questionCount}">Question Text</label>
+              <input type="text" id="questionText${questionCount}" class="form-control question-text" required>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label" for="questionType${questionCount}">Question Type</label>
+              <select id="questionType${questionCount}" class="form-select question-type" onchange="changeQuestionType(this, ${questionCount})">
+                <option value="multiple-choice">Multiple Choice</option>
+                <option value="yes-no">Yes/No</option>
+                <option value="short-answer">Short Answer</option>
+              </select>
+            </div>
+            
+            <div class="question-options-container">
+              <div class="mb-3">
+                <label class="form-label">Options (mark correct answer)</label>
+                <div class="option-list">
+                  <div class="d-flex align-items-center mb-2">
+                    <input type="radio" name="correct-option${questionCount}" class="me-2">
+                    <input type="text" id="option1-${questionCount}" class="form-control form-control-sm option-text" placeholder="Option 1" required>
+                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
+                  </div>
+                  <div class="d-flex align-items-center mb-2">
+                    <input type="radio" name="correct-option${questionCount}" class="me-2">
+                    <input type="text" id="option2-${questionCount}" class="form-control form-control-sm option-text" placeholder="Option 2" required>
+                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
+                  </div>
+                  <div class="d-flex align-items-center mb-2">
+                    <input type="radio" name="correct-option${questionCount}" class="me-2" id="boyd-option${questionCount}">
+                    <label for="boyd-option${questionCount}">Boyd</label>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addOption(this, ${questionCount})">Add Option</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      DOM.questionsContainer.insertAdjacentHTML('beforeend', questionHTML);
+    }
+
+    function addOption(button, questionCount) {
+      const container = button.closest('.mb-3');
+      const optionList = container.querySelector('.option-list');
+      const optionInputs = optionList.querySelectorAll('.option-text');
+      const newOptionIndex = optionInputs.length + 1;
+      const newOptionId = `option${newOptionIndex}-${questionCount}`;
+
+      // Check for duplicate option values
+      const existingOptions = Array.from(optionInputs).map(input => input.value.trim());
+      const newOptionValue = prompt("Enter new option value:");
+      
+      if (newOptionValue && !existingOptions.includes(newOptionValue)) {
+        const optionHTML = `
+          <div class="d-flex align-items-center mb-2">
+            <input type="radio" name="correct-option${questionCount}" class="me-2">
+            <input type="text" id="${newOptionId}" class="form-control form-control-sm option-text" value="${newOptionValue}" required>
+            <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
+          </div>
+        `;
+        
+        optionList.insertAdjacentHTML('beforeend', optionHTML);
+      } else {
+        alert("Option value must be unique or not empty.");
+      }
+    }
+
+    function changeQuestionType(select, questionCount) {
+      const questionCard = select.closest('.card');
+      const optionsContainer = questionCard.querySelector('.question-options-container');
+      
+      switch (select.value) {
+        case 'multiple-choice':
+          optionsContainer.innerHTML = `
+            <div class="mb-3">
+              <label class="form-label">Options (mark correct answer)</label>
+              <div class="option-list">
+                <div class="d-flex align-items-center mb-2">
+                  <input type="radio" name="correct-option${questionCount}" class="me-2">
+                  <input type="text" id="option1-${questionCount}" class="form-control form-control-sm option-text" placeholder="Option 1" required>
+                  <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                  <input type="radio" name="correct-option${questionCount}" class="me-2">
+                  <input type="text" id="option2-${questionCount}" class="form-control form-control-sm option-text" placeholder="Option 2" required>
+                  <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                  <input type="radio" name="correct-option${questionCount}" class="me-2" id="boyd-option${questionCount}">
+                  <label for="boyd-option${questionCount}">Boyd</label>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addOption(this, ${questionCount})">Add Option</button>
+            </div>
+          `;
+          break;
+          
+        case 'yes-no':
+          optionsContainer.innerHTML = `
+            <div class="mb-3">
+              <label class="form-label">Correct Answer</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="correct-option${questionCount}" id="yes-option${questionCount}" value="Yes">
+                <label class="form-check-label" for="yes-option${questionCount}">Yes</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="correct-option${questionCount}" id="no-option${questionCount}" value="No">
+                <label class="form-check-label" for="no-option${questionCount}">No</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="correct-option${questionCount}" id="boyd-option${questionCount}" value="Boyd">
+                <label class="form-check-label" for="boyd-option${questionCount}">Boyd</label>
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'short-answer':
+          optionsContainer.innerHTML = `
+            <div class="mb-3">
+              <label class="form-label">Correct Answer</label>
+              <input type="text" class="form-control correct-answer" id="short-answer${questionCount}" placeholder="Enter your answer" required>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="correct-answer${questionCount}" id="boyd-answer${questionCount}" value="Boyd">
+                <label class="form-check-label" for="boyd-answer${questionCount}">Boyd</label>
+              </div>
+            </div>
+          `;
+          break;
+      }
+    }
+
+    function saveQuiz() {
+      const title = DOM.quizTitle.value.trim();
+      const category = DOM.quizCategory.value;
+      const description = DOM.quizDescription.value.trim();
+      const dateTime = DOM.quizDateTime.value; // Get the combined date and time
+      
+      // Basic validation
+      if (!title || !category || !dateTime) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      
+      const questionElements = DOM.questionsContainer.children;
+      if (questionElements.length === 0) {
+        alert('Please add at least one question');
+        return;
+      }
+      
+      const questions = [];
+      
+      // Process each question
+      for (let i = 0; i < questionElements.length; i++) {
+        const questionCard = questionElements[i];
+        const questionText = questionCard.querySelector('.question-text').value.trim();
+        const questionType = questionCard.querySelector('.question-type').value;
+        
+        if (!questionText) {
+          alert(`Please enter text for question ${i + 1}`);
+          return;
+        }
+        
+        const questionObj = {
+          text: questionText,
+          type: questionType
+        };
+        
+        // Process based on question type
+        switch (questionType) {
+          case 'multiple-choice':
+            const options = [];
+            const optionInputs = questionCard.querySelectorAll('.option-text');
+            const correctOption = questionCard.querySelector('input[type="radio"]:checked');
+            
+            optionInputs.forEach(input => {
+              const optionText = input.value.trim();
+              if (optionText) options.push(optionText);
+            });
+            
+            if (options.length < 2) {
+              alert(`Question ${i + 1}: Multiple choice needs at least 2 options`);
+              return;
+            }
+            
+            if (!correctOption) {
+              alert(`Question ${i + 1}: Please select the correct answer`);
+              return;
+            }
+            
+            questionObj.options = options;
+            questionObj.correctIndex = Array.from(questionCard.querySelectorAll('input[type="radio"]'))
+              .indexOf(correctOption);
+            break;
+            
+          case 'yes-no':
+            const isYes = questionCard.querySelector(`#yes-option${i + 1}:checked`);
+            const isNo = questionCard.querySelector(`#no-option${i + 1}:checked`);
+            const isBoyd = questionCard.querySelector(`#boyd-option${i + 1}:checked`);
+            
+            if (!isYes && !isNo && !isBoyd) {
+              alert(`Question ${i + 1}: Please select the correct answer`);
+              return;
+            }
+            
+            questionObj.correctAnswer = isYes ? 'Yes' : (isNo ? 'No' : 'Boyd');
+            break;
+            
+          case 'short-answer':
+            const answer = questionCard.querySelector('.correct-answer').value.trim();
+            if (!answer) {
+              alert(`Question ${i + 1}: Please enter the correct answer`);
+              return;
+            }
+            questionObj.correctAnswer = answer; // Use the provided answer
+            break;
+        }
+        
+        questions.push(questionObj);
+      }
+      
+      // Create quiz object with all required fields
+      const quizData = {
+        id: currentEditingQuiz?.id || `qz-${Date.now()}`,
+        title,
+        category,
+        description,
+        dateTime,
+        questions,
+        createdAt: new Date().toISOString(),
+        attempts: 0,
+        lastModified: new Date().toISOString()
+      };
+      
+      // Update or add quiz
+      if (currentEditingQuiz) {
+        const index = quizzes.findIndex(q => q.id === currentEditingQuiz.id);
+        if (index !== -1) quizzes[index] = quizData;
+      } else {
+        quizzes.push(quizData);
+      }
+      
+      saveQuizzes();
+      loadQuizzes();
+      DOM.addQuizModal.hide();
+      alert('Quiz saved successfully!');
+    }
+
+    function editQuiz(index) {
+      currentEditingQuiz = quizzes[index];
+      DOM.quizTitle.value = currentEditingQuiz.title;
+      DOM.quizDescription.value = currentEditingQuiz.description || '';
+      DOM.quizDateTime.value = currentEditingQuiz.dateTime; // Set the date and time
+      loadCategoryDropdown();
+      DOM.quizCategory.value = currentEditingQuiz.category;
+      DOM.questionsContainer.innerHTML = '';
+      
+      // Add questions
+      currentEditingQuiz.questions.forEach(question => {
+        addQuestion();
+        const questionCard = DOM.questionsContainer.lastElementChild;
+        
+        questionCard.querySelector('.question-text').value = question.text;
+        const typeSelect = questionCard.querySelector('.question-type');
+        typeSelect.value = question.type;
+        changeQuestionType(typeSelect, DOM.questionsContainer.children.length);
+        
+        // Set the answer based on question type
+        switch (question.type) {
+          case 'multiple-choice':
+            const optionsContainer = questionCard.querySelector('.option-list');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, i) => {
+              const optionHTML = `
+                <div class="d-flex align-items-center mb-2">
+                  <input type="radio" name="correct-option${DOM.questionsContainer.children.length}" class="me-2" ${i === question.correctIndex ? 'checked' : ''}>
+                  <input type="text" id="option${i + 1}-${DOM.questionsContainer.children.length}" class="form-control form-control-sm option-text" value="${option}" required>
+                  <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
+                </div>
+              `;
+              optionsContainer.insertAdjacentHTML('beforeend', optionHTML);
+            });
+            // Add the Boyd option
+            optionsContainer.insertAdjacentHTML('beforeend', `
+              <div class="d-flex align-items-center mb-2">
+                <input type="radio" name="correct-option${DOM.questionsContainer.children.length}" class="me-2" id="boyd-option${DOM.questionsContainer.children.length}" ${question.correctIndex === options.length ? 'checked' : ''}>
+                <label for="boyd-option${DOM.questionsContainer.children.length}">Boyd</label>
+              </div>
+            `);
+            break;
+            
+          case 'yes-no':
+            const correctValue = question.correctAnswer.toLowerCase();
+            questionCard.querySelector(`#${correctValue}-option${DOM.questionsContainer.children.length}`).checked = true;
+            break;
+            
+          case 'short-answer':
+            questionCard.querySelector('.correct-answer').value = question.correctAnswer;
+            break;
+        }
+      });
+      
+      DOM.addQuizModal.show();
+    }
+
+    function deleteQuiz(index) {
+      if (confirm(`Delete quiz "${quizzes[index].title}"?`)) {
+        quizzes.splice(index, 1);
+        saveQuizzes();
+        loadQuizzes();
+      }
+    }
+
+    function saveQuizzes() {
+      localStorage.setItem('quizzes', JSON.stringify(quizzes));
+    }
+
+    // Import/Export Functions
+    function handleFileImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          
+          if (Array.isArray(importedData)) {
+            // Merge with existing quizzes
+            quizzes = [...quizzes, ...importedData];
+            saveQuizzes();
+            loadQuizzes();
+            alert(`${importedData.length} quizzes imported successfully!`);
+          } else {
+            alert('Invalid file format. Please import a valid JSON file.');
+          }
+        } catch (error) {
+          console.error('Error importing quizzes:', error);
+          alert('Error importing quizzes. Please check the file format.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportQuizzes() {
+      if (quizzes.length === 0) {
+        alert('No quizzes to export');
+        return;
+      }
+      
+      const dataStr = JSON.stringify(quizzes, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+      
+      const exportFileName = `quizzes-export-${new Date().toISOString().slice(0, 10)}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileName);
+      linkElement.click();
+    }
+
+    // Global functions for button actions
+    window.deleteCategory = deleteCategory;
+    window.deleteQuiz = deleteQuiz;
+    window.editQuiz = editQuiz;
+
+    // Initialize the settings page
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
+
