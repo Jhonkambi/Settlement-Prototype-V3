@@ -51,7 +51,7 @@
     }
     .quiz-title {
       font-weight: bold;
-      margin-bottom: 2px;
+      margin-bottom: 1.5px;
     }
     .quiz-meta {
       display: flex;
@@ -115,15 +115,26 @@
       width: 45%;
     }
     .quiz-table .boyd-cell {
-      width: 60px;
-      text-align: center;
+      width: 80px;
+      text-align: left;
+      margin: 0;
+      padding: 8px 12px;
+      vertical-align: middle;
+    }
+    .boyd-cell input[type="radio"] {
+      width: 15px !important;
+      height: 15px !important;
+      margin-left: 10 !important;
+      padding: 0 !important;
+      border: 1px solid #003865 !important;
+      border-radius: 2px !important;
     }
     .quiz-table .question-cell {
-      width: 55%;
-      padding-left: 50px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
+      width: 60px;
+      text-align: middle;
+      margin: 0;
+      padding: 15px 50px;
+      vertical-align: middle;
     }
     .empty-state {
       display: flex;
@@ -306,6 +317,7 @@
       align-items: center;
       gap: 6px;
       padding-left: 35px;
+      margin: 0;
     }
     .search-input {
       width: 120px;
@@ -318,7 +330,13 @@
       outline: none;
     }
     .question-header th {
-      padding: 8px 12px;
+      padding: 10px 12px;
+      text-align: left;
+      margin: 0;
+      vertical-align: middle;
+    }
+    .question-header th:nth-child(2){
+     text-align: center;
     }
   </style>
 </head>
@@ -388,7 +406,7 @@
           <thead>
             <tr class="question-header">
               <th>Quiz Outcomes</th>
-              <th style="width: 60px;">Boyd</th>
+              <th style="width: 25px;">Boyd</th>
               <th>
                 <div class="search-container">
                   <div style="display:flex; align-items:center; gap:15px">
@@ -400,23 +418,7 @@
             </tr>
           </thead>
           <tbody id="quiz-content">
-            <tr>
-              <td class="answer-cell">
-                <div class="checkbox-option">
-                  <input type="radio" id="option1" name="quiz-option" value="0" />
-                  <label for="option1">Option 1</label>
-                </div>
-              </td>
-              <td class="boyd-cell">
-                <div class="checkbox-option">
-                  <input type="radio" id="boyd-option" name="quiz-option" value="Boyd" />
-                  <label for="boyd-option" style="display: none;"></label>
-                </div>
-              </td>
-              <td class="question-cell">
-                <span>Question description goes here.</span>
-              </td>
-            </tr>
+            <!-- Quiz questions will be dynamically added here -->
           </tbody>
         </table>
         <div class="submit-container">
@@ -478,25 +480,10 @@
     function loadQuizzesFromStorage() {
         try {
             allQuizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-            // Ensure all quizzes have unique IDs and date/time (backward compatibility)
-            allQuizzes = allQuizzes.map(quiz => ({
-                id: quiz.id || generateUniqueQuizId(),  // Ensure unique IDs
-                date: quiz.date || new Date().toISOString(), // Ensure date is present
-                time: quiz.time || new Date().toLocaleTimeString(), // Ensure time is present
-                ...quiz,
-                questions: quiz.questions.map(q => ({
-                    id: q.id || generateQuestionId(),
-                    ...q
-                }))
-            }));
         } catch (error) {
             console.error('Error loading quizzes:', error);
             allQuizzes = [];
         }
-    }
-
-    function generateUniqueQuizId() {
-        return Date.now().toString() + Math.random().toString(36).substring(2, 8);
     }
 
     function loadCategoriesIntoDropdown() {
@@ -584,13 +571,10 @@
             
             quizItem.innerHTML = `
                 <div class="quiz-item-content">
-                    <div class="quiz-title">${quiz.title}</div>
                     <div class="quiz-meta">
-                        <span>${new Date(quiz.date).toLocaleDateString()}</span>
-                        <span>${quiz.time}</span>
-                        <span>${quiz.category || 'Uncategorized'}</span>
+                        <span>${new Date(quiz.dateTime).toLocaleString()}</span>
+                    	<strong class="quiz-title">${quiz.title}</strong>
                     </div>
-                    <div class="quiz-description">${quiz.description || 'No description'}</div>
                 </div>
             `;
             
@@ -619,7 +603,7 @@
         quizDetails.style.display = 'block';
         quizTitle.textContent = currentQuiz.title;
         quizDescription.textContent = currentQuiz.description || 'No description';
-        quizDateTime.textContent = `${new Date(currentQuiz.date).toLocaleDateString()} ${currentQuiz.time}`;
+        quizDateTime.textContent = `${new Date(currentQuiz.dateTime).toLocaleString()}`;
         displayQuestions();
     }
 
@@ -720,7 +704,6 @@
         
         const quizIndex = currentQuiz.index;
         const answers = {};
-        let allAnswered = true;
         
         currentQuiz.questions.forEach((question, qIndex) => {
             const answer = { type: question.type };
@@ -728,19 +711,16 @@
             
             if (question.type === 'short-answer') {
                 const textArea = document.querySelector(`#${questionName}_text`);
-                if (textArea?.value.trim()) {
-                    answer.answer = textArea.value.trim();
-                    answer.isCorrect = checkAnswerCorrectness(question, textArea.value.trim());
-                } else {
-                    allAnswered = false;
-                }
+                const boydRadio = document.querySelector(`input[name="${questionName}"][value="Boyd"]:checked`);
+                
+                // If Boyd is selected, use that, otherwise use text input (can be empty)
+                answer.answer = boydRadio ? 'Boyd' : (textArea?.value.trim() || '');
+                answer.isCorrect = checkAnswerCorrectness(question, answer.answer, boydRadio !== null);
             } else {
                 const selectedInput = document.querySelector(`input[name="${questionName}"]:checked`);
                 if (selectedInput) {
                     answer.answer = selectedInput.value;
                     answer.isCorrect = checkAnswerCorrectness(question, selectedInput.value);
-                } else {
-                    allAnswered = false;
                 }
             }
             
@@ -748,28 +728,22 @@
         });
         
         userAnswers[quizIndex] = answers;
+        completedQuizzes.add(quizIndex);
+        quizResults[quizIndex] = calculateQuizScore(currentQuiz, answers);
         
-        if (allAnswered) {
-            completedQuizzes.add(quizIndex);
-            quizResults[quizIndex] = calculateQuizScore(currentQuiz, answers);
-            alert('Progress saved successfully!');
-            closeCurrentQuiz();
-            displayQuizList();
-        } else {
-            alert('Please answer all questions before saving.');
-        }
-        
+        closeCurrentQuiz();
+        displayQuizList();
         updateProgress();
         saveUserProgress();
     }
 
-    function checkAnswerCorrectness(question, userAnswer) {
+    function checkAnswerCorrectness(question, userAnswer, isBoydSelected) {
         if (question.type === 'multiple-choice') {
-            return parseInt(userAnswer) === question.correctIndex;
+            return userAnswer === question.correctAnswer;
         } else if (question.type === 'yes-no') {
             return userAnswer === question.correctAnswer;
         } else if (question.type === 'short-answer') {
-            return userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
+            return isBoydSelected || userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
         }
         return false;
     }
