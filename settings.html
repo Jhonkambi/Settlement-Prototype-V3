@@ -421,9 +421,9 @@
             <div class="mb-3">
               <label class="form-label">Correct Answer</label>
               <input type="text" class="form-control correct-answer" id="short-answer${questionCount}" placeholder="Enter your answer" required>
-              <div class="form-check">
+              <div class="form-check mt-2">
                 <input class="form-check-input" type="radio" name="correct-answer${questionCount}" id="boyd-answer${questionCount}" value="Boyd">
-                <label class="form-check-label" for="boyd-answer${questionCount}">Boyd</label>
+                <label class="form-check-label" for="boyd-answer${questionCount}">Use "Boyd" as correct answer</label>
               </div>
             </div>
           `;
@@ -464,7 +464,8 @@
         
         const questionObj = {
           text: questionText,
-          type: questionType
+          type: questionType,
+          dateTime: dateTime
         };
         
         // Process based on question type
@@ -472,8 +473,10 @@
           case 'multiple-choice':
             const options = [];
             const optionInputs = questionCard.querySelectorAll('.option-text');
+            const radioInputs = questionCard.querySelectorAll('input[type="radio"]');
             const correctOption = questionCard.querySelector('input[type="radio"]:checked');
             
+            // Extract options
             optionInputs.forEach(input => {
               const optionText = input.value.trim();
               if (optionText) options.push(optionText);
@@ -490,8 +493,13 @@
             }
             
             questionObj.options = options;
-            questionObj.correctIndex = Array.from(questionCard.querySelectorAll('input[type="radio"]'))
-              .indexOf(correctOption);
+            
+            // Determine correct answer (either from options or "Boyd")
+            if (correctOption.id.includes('boyd-option')) {
+              questionObj.correctAnswer = 'Boyd';
+            } else {
+              questionObj.correctAnswer = correctOption.closest('.d-flex').querySelector('.option-text').value.trim();
+            }
             break;
             
           case 'yes-no':
@@ -504,16 +512,20 @@
               return;
             }
             
-            questionObj.correctAnswer = isYes ? 'Yes' : (isNo ? 'No' : 'Boyd');
+            questionObj.correctAnswer = isBoyd ? 'Boyd' : (isYes ? 'Yes' : 'No');
             break;
             
           case 'short-answer':
-            const answer = questionCard.querySelector('.correct-answer').value.trim();
-            if (!answer) {
+            const answerInput = questionCard.querySelector('.correct-answer');
+            const answer = answerInput ? answerInput.value.trim() : '';
+            const isBoydAnswer = questionCard.querySelector(`#boyd-answer${i + 1}:checked`);
+            
+            if (!answer && !isBoydAnswer) {
               alert(`Question ${i + 1}: Please enter the correct answer`);
               return;
             }
-            questionObj.correctAnswer = answer; // Use the provided answer
+            
+            questionObj.correctAnswer = isBoydAnswer ? 'Boyd' : answer;
             break;
         }
         
@@ -575,7 +587,7 @@
             question.options.forEach((option, i) => {
               const optionHTML = `
                 <div class="d-flex align-items-center mb-2">
-                  <input type="radio" name="correct-option${DOM.questionsContainer.children.length}" class="me-2" ${i === question.correctIndex ? 'checked' : ''}>
+                  <input type="radio" name="correct-option${DOM.questionsContainer.children.length}" class="me-2" ${question.correctAnswer === option ? 'checked' : ''}>
                   <input type="text" id="option${i + 1}-${DOM.questionsContainer.children.length}" class="form-control form-control-sm option-text" value="${option}" required>
                   <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.parentNode.remove()">×</button>
                 </div>
@@ -585,19 +597,23 @@
             // Add the Boyd option
             optionsContainer.insertAdjacentHTML('beforeend', `
               <div class="d-flex align-items-center mb-2">
-                <input type="radio" name="correct-option${DOM.questionsContainer.children.length}" class="me-2" id="boyd-option${DOM.questionsContainer.children.length}" ${question.correctIndex === options.length ? 'checked' : ''}>
+                <input type="radio" name="correct-option${DOM.questionsContainer.children.length}" class="me-2" id="boyd-option${DOM.questionsContainer.children.length}" ${question.correctAnswer === 'Boyd' ? 'checked' : ''}>
                 <label for="boyd-option${DOM.questionsContainer.children.length}">Boyd</label>
               </div>
             `);
             break;
             
           case 'yes-no':
-            const correctValue = question.correctAnswer.toLowerCase();
-            questionCard.querySelector(`#${correctValue}-option${DOM.questionsContainer.children.length}`).checked = true;
+            const radioValue = question.correctAnswer.toLowerCase();
+            questionCard.querySelector(`#${radioValue}-option${DOM.questionsContainer.children.length}`).checked = true;
             break;
             
           case 'short-answer':
-            questionCard.querySelector('.correct-answer').value = question.correctAnswer;
+            if (question.correctAnswer === 'Boyd') {
+              questionCard.querySelector(`#boyd-answer${DOM.questionsContainer.children.length}`).checked = true;
+            } else {
+              questionCard.querySelector('.correct-answer').value = question.correctAnswer;
+            }
             break;
         }
       });
@@ -671,4 +687,3 @@
   </script>
 </body>
 </html>
-
