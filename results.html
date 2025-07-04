@@ -247,11 +247,6 @@
       color: #721c24;
     }
     
-    .status-void {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-    
     .download-modal {
       display: none;
       position: fixed;
@@ -417,10 +412,6 @@
             <div class="summary-text">Correct Answers</div>
           </div>
           <div class="summary-item">
-            <div class="summary-number" id="totalVoid">0</div>
-            <div class="summary-text">Void Answers</div>
-          </div>
-          <div class="summary-item">
             <div class="summary-number" id="overallPercentage">0%</div>
             <div class="summary-text">Overall Score</div>
           </div>
@@ -447,15 +438,9 @@
         </div>
         
         <div class="stat-card">
-          <h3>Best Quiz Score</h3>
-          <div class="stat-value" id="bestScore">0%</div>
-          <div class="stat-label" id="bestQuizName">No quizzes completed</div>
-        </div>
-        
-        <div class="stat-card">
-          <h3>Time Taken</h3>
-          <div class="stat-value" id="timeTaken">--:--</div>
-          <div class="stat-label">Total time spent on quizzes</div>
+          <h3>Settlement Status</h3>
+          <div class="stat-value" id="timeTaken">Pending</div>
+          <div class="stat-label">Quiz completion status</div>
         </div>
       </div>
     </div>
@@ -531,14 +516,20 @@
       
       // Home button functionality
       document.getElementById('homeBtn').addEventListener('click', clearProgressAndRedirect);
+
+      // Set up download option selection
+      document.querySelectorAll('.download-option').forEach(option => {
+        option.addEventListener('click', function() {
+          selectedFormat = this.dataset.format;
+          document.querySelectorAll('.download-option').forEach(opt => opt.classList.remove('selected'));
+          this.classList.add('selected');
+        });
+      });
     }
     
     function clearProgressAndRedirect() {
-      // Clear specific items from localStorage
-      localStorage.removeItem('quizProgress'); // Clear quiz progress
-      localStorage.removeItem('quizHistory'); // Clear quiz results
-      
-      // Redirect to home page
+      localStorage.removeItem('quizProgress');
+      localStorage.removeItem('quizHistory');
       window.location.href = 'index.html';
     }
     
@@ -564,37 +555,33 @@
       const totalQuizzes = results.length;
       let totalQuestions = 0;
       let totalCorrect = 0;
-      let totalVoid = 0;
-      let bestScore = 0;
-      let bestQuizName = '';
+      let totalTime = 0; // Initialize total time variable
       
       results.forEach(result => {
         totalQuestions += result.totalQuestions;
         totalCorrect += result.score;
-        totalVoid += result.voidCount || 0;
-        
-        if (result.percentage > bestScore) {
-          bestScore = result.percentage;
-          bestQuizName = result.quizTitle;
-        }
+        totalTime += result.timeTaken || 0; // Accumulate time taken
       });
       
       const overallPercentage = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
-      const completionRate = 100; // All loaded results are completed
+      const completionRate = 100;
       
       // Update summary stats
       document.getElementById('totalQuizzes').textContent = totalQuizzes;
       document.getElementById('totalQuestions').textContent = totalQuestions;
       document.getElementById('totalCorrect').textContent = totalCorrect;
-      document.getElementById('totalVoid').textContent = totalVoid;
       document.getElementById('overallPercentage').textContent = overallPercentage + '%';
       
       // Update detailed stats
       document.getElementById('performanceScore').textContent = overallPercentage + '%';
       document.getElementById('completionRate').textContent = completionRate + '%';
-      document.getElementById('bestScore').textContent = bestScore + '%';
-      document.getElementById('bestQuizName').textContent = bestQuizName || 'No quizzes completed';
       
+      // Format and display total time taken
+      const minutes = Math.floor(totalTime / 60);
+      const seconds = totalTime % 60;
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      document.getElementById('timeTaken').textContent = timeString;
+
       // Update progress bars
       setTimeout(() => {
         document.getElementById('performanceProgress').style.width = overallPercentage + '%';
@@ -602,12 +589,6 @@
         document.getElementById('completionProgress').style.width = completionRate + '%';
         document.getElementById('completionProgress').textContent = completionRate + '%';
       }, 500);
-      
-      // Calculate time taken (if available)
-      const firstResult = results[0];
-      if (firstResult && firstResult.dateTaken) {
-        document.getElementById('timeTaken').textContent = 'Completed';
-      }
     }
     
     function displayResults(results) {
@@ -634,10 +615,8 @@
           const questionDiv = document.createElement('div');
           questionDiv.className = 'question-item';
           
-          const statusClass = questionResult.isVoid ? 'status-void' : 
-                             (questionResult.isCorrect ? 'status-correct' : 'status-incorrect');
-          const statusText = questionResult.isVoid ? 'Void' : 
-                            (questionResult.isCorrect ? 'Correct' : 'Incorrect');
+          const statusClass = questionResult.isCorrect ? 'status-correct' : 'status-incorrect';
+          const statusText = questionResult.isCorrect ? 'Correct' : 'Incorrect';
           
           questionDiv.innerHTML = `
             <div class="question-text">
@@ -719,7 +698,7 @@
             `"${questionResult.question}"`,
             `"${questionResult.userAnswer}"`,
             `"${questionResult.correctAnswer}"`,
-            questionResult.isVoid ? 'Void' : (questionResult.isCorrect ? 'Correct' : 'Incorrect'),
+            questionResult.isCorrect ? 'Correct' : 'Incorrect',
             questionResult.isCorrect
           ].join(',');
           csvContent += row + '\n';
@@ -736,7 +715,6 @@
     }
 
     function downloadAsExcel(filename) {
-      // This is a simple implementation; for a real Excel file, consider using a library like SheetJS
       let excelContent = 'Quiz Title\tQuestion\tYour Answer\tCorrect Answer\tStatus\n';
       
       quizResults.forEach(result => {
@@ -746,7 +724,7 @@
             questionResult.question,
             questionResult.userAnswer,
             questionResult.correctAnswer,
-            questionResult.isVoid ? 'Void' : (questionResult.isCorrect ? 'Correct' : 'Incorrect')
+            questionResult.isCorrect ? 'Correct' : 'Incorrect'
           ].join('\t');
           excelContent += row + '\n';
         });
@@ -762,10 +740,8 @@
     }
 
     function downloadAsPDF(filename) {
-      // For PDF generation, consider using a library like jsPDF
-      alert('PDF download functionality is not implemented yet.');
+      alert('PDF download functionality would be implemented with a library like jsPDF in a production environment.');
     }
-
   </script>
 </body>
 </html>
