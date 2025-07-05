@@ -438,6 +438,7 @@
     let quizResults = [];
     let timer = null;
     let startTime = null;
+    let elapsedTime = 0; // New variable to track elapsed time
 
     // DOM Elements
     const categoryDropdown = document.getElementById('categoryDropdown');
@@ -553,7 +554,7 @@
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            [shuffled[i], shuffled[j]] = [            shuffled[j]] = [shuffled[j], shuffled[i]];
         }
         return shuffled;
     }
@@ -713,9 +714,14 @@
                 const textArea = document.querySelector(`#${questionName}_text`);
                 const boydRadio = document.querySelector(`input[name="${questionName}"][value="Boyd"]:checked`);
                 
-                // If Boyd is selected, use that, otherwise use text input (can be empty)
-                answer.answer = boydRadio ? 'Boyd' : (textArea?.value.trim() || '');
-                answer.isCorrect = checkAnswerCorrectness(question, answer.answer, boydRadio !== null);
+                // If Boyd is selected, check if Boyd is the correct answer
+                if (boydRadio) {
+                    answer.answer = 'Boyd';
+                    answer.isCorrect = question.correctAnswer === 'Boyd';
+                } else {
+                    answer.answer = textArea?.value.trim() || '';
+                    answer.isCorrect = answer.answer.toLowerCase() === question.correctAnswer.toLowerCase();
+                }
             } else {
                 const selectedInput = document.querySelector(`input[name="${questionName}"]:checked`);
                 if (selectedInput) {
@@ -737,13 +743,13 @@
         saveUserProgress();
     }
 
-    function checkAnswerCorrectness(question, userAnswer, isBoydSelected) {
+    function checkAnswerCorrectness(question, userAnswer) {
         if (question.type === 'multiple-choice') {
             return userAnswer === question.correctAnswer;
         } else if (question.type === 'yes-no') {
             return userAnswer === question.correctAnswer;
         } else if (question.type === 'short-answer') {
-            return isBoydSelected || userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
+            return userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
         }
         return false;
     }
@@ -823,9 +829,9 @@
         
         timer = setInterval(() => {
             const now = new Date();
-            const elapsed = Math.floor((now - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            elapsedTime = Math.floor((now - startTime) / 1000); // Update elapsed time
+            const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+            const seconds = (elapsedTime % 60).toString().padStart(2, '0');
             timerDisplay.textContent = `Time: ${minutes}:${seconds}`;
         }, 1000);
     }
@@ -887,6 +893,7 @@
                 totalQuestions: quizResult.total,
                 percentage: quizResult.percentage,
                 dateTaken: new Date().toISOString(),
+                elapsedTime: elapsedTime, // Include elapsed time
                 results: detailedResults
             };
         }).filter(Boolean);
@@ -908,7 +915,8 @@
                 userAnswers,
                 completedQuizzes: Array.from(completedQuizzes),
                 quizResults,
-                startTime
+                startTime,
+                elapsedTime // Save elapsed time
             }));
         } catch (error) {
             console.error('Error saving user progress:', error);
@@ -923,6 +931,7 @@
                 completedQuizzes = new Set(progress.completedQuizzes || []);
                 quizResults = progress.quizResults || [];
                 startTime = progress.startTime ? new Date(progress.startTime) : null;
+                elapsedTime = progress.elapsedTime || 0; // Load elapsed time
                 if (startTime && (new Date() - startTime) / 1000 < 3600) {
                     startTimer();
                 }
