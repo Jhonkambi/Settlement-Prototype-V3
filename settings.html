@@ -422,7 +422,7 @@
               <label class="form-label">Correct Answer</label>
               <input type="text" class="form-control correct-answer" id="short-answer${questionCount}" placeholder="Enter your answer" required>
               <div class="form-check mt-2">
-                <input class="form-check-input" type="radio" name="correct-answer${questionCount}" id="boyd-answer${questionCount}" value="Boyd">
+                <input class="form-check-input" type="checkbox" id="boyd-answer${questionCount}" onchange="toggleBoydAnswer(this, ${questionCount})">
                 <label class="form-check-label" for="boyd-answer${questionCount}">Use "Boyd" as correct answer</label>
               </div>
             </div>
@@ -431,133 +431,166 @@
       }
     }
 
-    function saveQuiz() {
-      const title = DOM.quizTitle.value.trim();
-      const category = DOM.quizCategory.value;
-      const description = DOM.quizDescription.value.trim();
-      const dateTime = DOM.quizDateTime.value; // Get the combined date and time
-      
-      // Basic validation
-      if (!title || !category || !dateTime) {
-        alert('Please fill in all required fields');
-        return;
-      }
-      
-      const questionElements = DOM.questionsContainer.children;
-      if (questionElements.length === 0) {
-        alert('Please add at least one question');
-        return;
-      }
-      
-      const questions = [];
-      
-      // Process each question
-      for (let i = 0; i < questionElements.length; i++) {
-        const questionCard = questionElements[i];
-        const questionText = questionCard.querySelector('.question-text').value.trim();
-        const questionType = questionCard.querySelector('.question-type').value;
+    function toggleBoydAnswer(checkbox, questionCount) {
+      const answerInput = checkbox.closest('.card').querySelector(`#short-answer${questionCount}`);
+      answerInput.disabled = checkbox.checked;
+      answerInput.required = !checkbox.checked;
+      answerInput.value = checkbox.checked ? '' : answerInput.value;
+    }
+
+function saveQuiz() {
+  // Basic form validation
+  const title = DOM.quizTitle.value.trim();
+  const category = DOM.quizCategory.value;
+  const description = DOM.quizDescription.value.trim();
+  const dateTime = DOM.quizDateTime.value;
+
+  if (!title || !category || !dateTime) {
+    alert('Please fill in all required fields');
+    return;
+  }
+
+  // Validate questions
+  const questionElements = DOM.questionsContainer.children;
+  if (questionElements.length === 0) {
+    alert('Please add at least one question');
+    return;
+  }
+
+  const questions = [];
+
+  // Process each question
+  for (let i = 0; i < questionElements.length; i++) {
+    const questionCard = questionElements[i];
+    
+    // Safely get question text input
+    const questionTextInput = questionCard.querySelector('.question-text');
+    if (!questionTextInput) {
+      console.error('Question text input not found for question', i+1);
+      alert(`Error: Question ${i+1} text input missing`);
+      return;
+    }
+    
+    const questionText = questionTextInput.value.trim();
+    if (!questionText) {
+      alert(`Please enter text for question ${i + 1}`);
+      return;
+    }
+
+    // Safely get question type
+    const questionTypeSelect = questionCard.querySelector('.question-type');
+    if (!questionTypeSelect) {
+      console.error('Question type select not found for question', i+1);
+      alert(`Error: Question ${i+1} type selector missing`);
+      return;
+    }
+    const questionType = questionTypeSelect.value;
+
+    const questionObj = {
+      text: questionText,
+      type: questionType,
+      dateTime: dateTime
+    };
+
+    // Process based on question type
+    switch (questionType) {
+      case 'multiple-choice':
+        const options = [];
+        const optionInputs = questionCard.querySelectorAll('.option-text');
+        const correctOption = questionCard.querySelector('input[type="radio"]:checked');
+
+        optionInputs.forEach(input => {
+          const optionText = input.value.trim();
+          if (optionText) options.push(optionText);
+        });
+
+        if (options.length < 2) {
+          alert(`Question ${i + 1}: Multiple choice needs at least 2 options`);
+          return;
+        }
+
+        if (!correctOption) {
+          alert(`Question ${i + 1}: Please select the correct answer`);
+          return;
+        }
+
+        questionObj.options = options;
         
-        if (!questionText) {
-          alert(`Please enter text for question ${i + 1}`);
+        // Handle Boyd option selection
+        if (correctOption.id && correctOption.id.includes('boyd-option')) {
+          questionObj.correctAnswer = 'Boyd';
+        } else {
+          const correctTextInput = correctOption.closest('.d-flex')?.querySelector('.option-text');
+          if (!correctTextInput) {
+            alert(`Error: Could not find selected option text for question ${i+1}`);
+            return;
+          }
+          questionObj.correctAnswer = correctTextInput.value.trim();
+        }
+        break;
+
+      case 'yes-no':
+        const isYes = questionCard.querySelector(`#yes-option${i + 1}:checked`);
+        const isNo = questionCard.querySelector(`#no-option${i + 1}:checked`);
+        const isBoyd = questionCard.querySelector(`#boyd-option${i + 1}:checked`);
+
+        if (!isYes && !isNo && !isBoyd) {
+          alert(`Question ${i + 1}: Please select the correct answer`);
+          return;
+        }
+
+        questionObj.correctAnswer = isBoyd ? 'Boyd' : (isYes ? 'Yes' : 'No');
+        break;
+
+      case 'short-answer':
+        const answerInput = questionCard.querySelector('.correct-answer');
+        if (!answerInput) {
+          console.error('Answer input not found for short-answer question', i+1);
+          alert(`Error: Answer input missing for question ${i+1}`);
           return;
         }
         
-        const questionObj = {
-          text: questionText,
-          type: questionType,
-          dateTime: dateTime
-        };
-        
-        // Process based on question type
-        switch (questionType) {
-          case 'multiple-choice':
-            const options = [];
-            const optionInputs = questionCard.querySelectorAll('.option-text');
-            const radioInputs = questionCard.querySelectorAll('input[type="radio"]');
-            const correctOption = questionCard.querySelector('input[type="radio"]:checked');
-            
-            // Extract options
-            optionInputs.forEach(input => {
-              const optionText = input.value.trim();
-              if (optionText) options.push(optionText);
-            });
-            
-            if (options.length < 2) {
-              alert(`Question ${i + 1}: Multiple choice needs at least 2 options`);
-              return;
-            }
-            
-            if (!correctOption) {
-              alert(`Question ${i + 1}: Please select the correct answer`);
-              return;
-            }
-            
-            questionObj.options = options;
-            
-            // Determine correct answer (either from options or "Boyd")
-            if (correctOption.id.includes('boyd-option')) {
-              questionObj.correctAnswer = 'Boyd';
-            } else {
-              questionObj.correctAnswer = correctOption.closest('.d-flex').querySelector('.option-text').value.trim();
-            }
-            break;
-            
-          case 'yes-no':
-            const isYes = questionCard.querySelector(`#yes-option${i + 1}:checked`);
-            const isNo = questionCard.querySelector(`#no-option${i + 1}:checked`);
-            const isBoyd = questionCard.querySelector(`#boyd-option${i + 1}:checked`);
-            
-            if (!isYes && !isNo && !isBoyd) {
-              alert(`Question ${i + 1}: Please select the correct answer`);
-              return;
-            }
-            
-            questionObj.correctAnswer = isBoyd ? 'Boyd' : (isYes ? 'Yes' : 'No');
-            break;
-            
-          case 'short-answer':
-            const answerInput = questionCard.querySelector('.correct-answer');
-            const answer = answerInput ? answerInput.value.trim() : '';
-            const isBoydAnswer = questionCard.querySelector(`#boyd-answer${i + 1}:checked`);
-            
-            if (!answer && !isBoydAnswer) {
-              alert(`Question ${i + 1}: Please enter the correct answer`);
-              return;
-            }
-            
-            questionObj.correctAnswer = isBoydAnswer ? 'Boyd' : answer;
-            break;
+        const answer = answerInput.value.trim();
+        const isBoydAnswer = questionCard.querySelector(`#boyd-answer${i + 1}`)?.checked || false;
+
+        if (!answer && !isBoydAnswer) {
+          alert(`Question ${i + 1}: Please enter the correct answer or select "Boyd"`);
+          return;
         }
-        
-        questions.push(questionObj);
-      }
-      
-      // Create quiz object with all required fields
-      const quizData = {
-        id: currentEditingQuiz?.id || `qz-${Date.now()}`,
-        title,
-        category,
-        description,
-        dateTime,
-        questions,
-        createdAt: new Date().toISOString(),
-        attempts: 0,
-        lastModified: new Date().toISOString()
-      };
-      
-      // Update or add quiz
-      if (currentEditingQuiz) {
-        const index = quizzes.findIndex(q => q.id === currentEditingQuiz.id);
-        if (index !== -1) quizzes[index] = quizData;
-      } else {
-        quizzes.push(quizData);
-      }
-      
-      saveQuizzes();
-      loadQuizzes();
-      DOM.addQuizModal.hide();
-      alert('Quiz saved successfully!');
+
+        questionObj.correctAnswer = isBoydAnswer ? 'Boyd' : answer;
+        break;
     }
+
+    questions.push(questionObj);
+  }
+
+  // Create quiz object
+  const quizData = {
+    id: currentEditingQuiz?.id || `qz-${Date.now()}`,
+    title,
+    category,
+    description,
+    dateTime,
+    questions,
+    createdAt: new Date().toISOString(),
+    attempts: 0,
+    lastModified: new Date().toISOString()
+  };
+
+  // Update or add quiz
+  if (currentEditingQuiz) {
+    const index = quizzes.findIndex(q => q.id === currentEditingQuiz.id);
+    if (index !== -1) quizzes[index] = quizData;
+  } else {
+    quizzes.push(quizData);
+  }
+
+  saveQuizzes();
+  loadQuizzes();
+  DOM.addQuizModal.hide();
+  alert('Quiz saved successfully!');
+}
 
     function editQuiz(index) {
       currentEditingQuiz = quizzes[index];
@@ -611,6 +644,7 @@
           case 'short-answer':
             if (question.correctAnswer === 'Boyd') {
               questionCard.querySelector(`#boyd-answer${DOM.questionsContainer.children.length}`).checked = true;
+              toggleBoydAnswer(questionCard.querySelector(`#boyd-answer${DOM.questionsContainer.children.length}`), DOM.questionsContainer.children.length);
             } else {
               questionCard.querySelector('.correct-answer').value = question.correctAnswer;
             }
