@@ -438,9 +438,9 @@
         </div>
         
         <div class="stat-card">
-          <h3>Settlement Status</h3>
-          <div class="stat-value" id="timeTaken">Pending</div>
-          <div class="stat-label">Quiz completion status</div>
+          <h3>Total Time Taken</h3>
+          <div class="stat-value" id="timeTaken">00:00</div>
+          <div class="stat-label">Total time spent on quizzes</div>
         </div>
       </div>
     </div>
@@ -560,7 +560,7 @@
       results.forEach(result => {
         totalQuestions += result.totalQuestions;
         totalCorrect += result.score;
-        totalTime += result.timeTaken || 0; // Accumulate time taken
+        totalTime += result.elapsedTime || 0; // Accumulate elapsed time
       });
       
       const overallPercentage = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
@@ -605,6 +605,7 @@
             <div class="quiz-score">${result.score}/${result.totalQuestions} (${result.percentage}%)</div>
           </div>
           <div class="question-list" id="questions-${index}"></div>
+          <div class="quiz-time">Time Taken: ${formatTime(result.elapsedTime)}</div>
         `;
         
         container.appendChild(quizDiv);
@@ -638,6 +639,12 @@
           questionsList.appendChild(questionDiv);
         });
       });
+    }
+    
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     
     function showDownloadModal() {
