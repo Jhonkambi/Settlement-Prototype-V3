@@ -1,411 +1,772 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Settlement Training with Enhanced Assistant</title>
-<style>
-  :root {
-    --primary-color: #003366;
-    --secondary-color: #0066cc;
-    --hover-color: #004a99;
-    --background-color: #f9f9f9;
-    --text-color: #222;
-    --white: #ffffff;
-  }
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    background: var(--background-color);
-    color: var(--text-color);
-  }
-  header {
-    background: var(--primary-color);
-    color: var(--white);
-    padding: 13px 20px;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  .header-title {
-    user-select: none;
-  }
-  .header-buttons button {
-    margin-left: 12px;
-    padding: 8px 16px;
-    font-size: 15px;
-    background: var(--secondary-color);
-    border: none;
-    border-radius: 6px;
-    color: var(--white);
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  .header-buttons button:hover {
-    background: var(--hover-color);
-  }
-  main {
-    max-width: 700px;
-    margin: 20px auto 100px auto;
-    background: var(--white);
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    border-radius: 6px;
-    padding: 20px 30px;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  main h2 {
-    margin-top: 0;
-    color: var(--primary-color);
-    font-weight: 700;
-  }
-  main ol {
-    padding-left: 1.25rem;
-  }
-  main ol li {
-    margin-bottom: 12px;
-  }
-  main ul {
-    padding-left: 1.25rem;
-    margin-top: 8px;
-    margin-bottom: 8px;
-  }
-  main ul li {
-    margin-bottom: 8px;
-  }
-  @media (max-width: 480px) {
-    header {
-      flex-direction: column;
-      align-items: flex-start;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settlement Training with AI Assistant</title>
+  <style>
+    :root {
+      --primary-color: #003366;
+      --secondary-color: #0066cc;
+      --hover-color: #004a99;
+      --accent-color: #004080;
+      --background-color: #f9f9f9;
+      --card-color: #ffffff;
+      --text-color: #222;
+      --light-text: #6c757d;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+      --white: #ffffff;
     }
-    .header-buttons {
-      margin-top: 12px;
-      width: 100%;
+    
+    body {
+      font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+      color: var(--white);
+      padding: 1rem 2rem;
+      box-shadow: var(--box-shadow);
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .header-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-primary {
+      background-color: var(--secondary-color);
+      color: var(--white);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--hover-color);
+    }
+    
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .card {
+      background-color: var(--card-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    h1, h2, h3 {
+      color: var(--primary-color);
+      margin-top: 0;
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    
+    ol, ul {
+      padding-left: 1.5rem;
+    }
+    
+    li {
+      margin-bottom: 1rem;
+    }
+    
+    strong {
+      color: var(--accent-color);
+    }
+    
+    /* Enhanced AI Chat Widget Styles */
+    #aiChatWidget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      max-width: 520px;
+      width: 95%;
+      background: var(--white);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 51, 102, 0.15), 0 8px 16px rgba(0, 51, 102, 0.1);
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1000;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(0, 51, 102, 0.1);
+      backdrop-filter: blur(10px);
+    }
+    
+    #aiChatWidget.collapsed {
+      transform: translateY(calc(100% - 72px));
+      box-shadow: 0 8px 24px rgba(0, 51, 102, 0.1);
+    }
+    
+    #aiChatHeader {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+      color: var(--white);
+      padding: 16px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      outline: none;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #aiChatHeader::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    
+    #aiChatHeader:hover::before {
+      transform: translateX(100%);
+    }
+    
+    #aiChatHeader:hover {
+      background: linear-gradient(135deg, var(--accent-color) 0%, var(--hover-color) 100%);
+    }
+    
+    .ai-header-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .ai-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    #aiChatToggleIcon {
+      font-size: 18px;
+      line-height: 1;
+      user-select: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    #aiChatWidget:not(.collapsed) #aiChatToggleIcon {
+      transform: rotate(180deg);
+    }
+
+    #clearChatBtn {
+      background: none;
+      border: none;
+      color: var(--white);
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 8px;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      opacity: 0.8;
+    }
+    
+    #clearChatBtn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    
+    #aiChatBody {
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+      background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+      padding: 20px;
+      overflow: hidden;
+    }
+    
+    #typingIndicator {
+      font-style: italic;
+      color: #64748b;
+      font-size: 12px;
+      margin-bottom: 12px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .typing-dots {
+      display: flex;
+      gap: 3px;
+    }
+    
+    .typing-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #64748b;
+      animation: typing 1.4s infinite;
+    }
+    
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { opacity: 0.3; }
+      30% { opacity: 1; }
+    }
+    
+    #aiChatMessages {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding: 4px;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
     }
-    .header-buttons button {
-      flex: 1;
-      margin-left: 0;
+    
+    #aiChatMessages::-webkit-scrollbar {
+      width: 6px;
     }
-  }
-  /* AI Chat styles */
-  #aiChatWidget {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    max-width: 480px;
-    width: 100%;
-    background: var(--white);
-    border-radius: 16px;
-    box-shadow: 0 8px 36px rgba(0,0,0,0.20);
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 1000;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    font-size: 16px;
-  }
-  #aiChatWidget.collapsed {
-    transform: translateY(calc(100% - 60px));
-    opacity: 0.8;
-    pointer-events: auto;
-  }
-  #aiChatHeader {
-    background: var(--primary-color);
-    color: var(--white);
-    padding: 10px 24px;
-    font-weight: 600;
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    outline: none;
-    font-size: 14px;
-  }
-  #aiChatHeader:focus {
-    outline: 3px solid var(--secondary-color);
-  }
-  #aiChatToggleIcon {
-    font-size: 20px;
-    line-height: 1;
-    user-select: none;
-    transition: transform 0.3s ease;
-  }
-  #aiChatToggleIcon.open {
-    transform: rotate(180deg);
-  }
-  #aiChatBody {
-    display: flex;
-    flex-direction: column;
-    height: 440px;
-    background: var(--background-color);
-    padding: 16px 20px;
-    overflow: hidden;
-  }
-  #typingIndicator {
-    font-style: italic;
-    color: #444;
-    font-size: 10px;
-    margin-bottom: 10px;
-    height: 15px;
-  }
-  #aiChatMessages {
-    flex-grow: 1;
-    overflow-y: auto;
-    margin-bottom: 12px;
-    scroll-behavior: smooth;
-  }
-  /* Chat message styles for messenger app style */
-  .aiMsg {
-    max-width: 70%;
-    margin-bottom: 12px;
-    padding: 10px 16px;
-    font-size: 14px;
-    line-height: 1.4;
-    word-wrap: break-word;
-    position: relative;
-    display: inline-block;
-    clear: both;
-  }
-  .aiUserMsg {
-    background: var(--secondary-color);
-    color: var(--white);
-    border-radius: 16px 0 16px 16px;
-    float: right;
-    text-align: right;
-  }
-  .aiBotMsg {
-    background: #e2e8f0;
-    color: #222;
-    border-radius: 0 16px 16px 16px;
-    float: left;
-    text-align: left;
-  }
-  @keyframes bounce-in-right {
-    0% { transform: translateX(100%) scale(0.7); opacity: 0; }
-    60% { transform: translateX(-10%) scale(1.05); opacity: 1; }
-    80% { transform: translateX(5%) scale(0.95); }
-    100% { transform: translateX(0) scale(1); }
-  }
-  @keyframes bounce-in-left {
-    0% { transform: translateX(-100%) scale(0.7); opacity: 0; }
-    60% { transform: translateX(10%) scale(1.05); opacity: 1; }
-    80% { transform: translateX(-5%) scale(0.95); }
-    100% { transform: translateX(0) scale(1); }
-  }
-  /* Smaller input field - adjusted for more compact size */
-  #aiChatInputArea {
-    display: flex;
-    gap: 8px;
-  }
-  #aiChatInput {
-    font-size: 13px;
-    padding: 8px 12px;
-    border-radius: 14px;
-    border: 1.5px solid #bbb;
-    min-height: 30px;
-    flex-grow: 1;
-  }
-  /* Smaller send button */
-  #aiChatSendBtn {
-    font-size: 13px;
-    padding: 8px 14px;
-    border-radius: 14px;
-    background: var(--primary-color);
-    border: none;
-    color: var(--white);
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  #aiChatSendBtn:disabled {
-    background: #555;
-    cursor: not-allowed;
-  }
-  #aiChatSendBtn:hover:not(:disabled) {
-    background: var(--hover-color);
-  }
-  /* Smaller clear chat button */
-  #clearChatBtn {
-    font-size: 14px;
-    padding: 10px 20px;
-    background: var(--secondary-color);
-    border: none;
-    border-radius: 20px;
-    color: var(--white);
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 10px;
-    align-self: flex-end;
-    transition: background-color 0.3s ease;
-  }
-  #clearChatBtn:hover {
-    background: var(--hover-color);
-  }
-  /* Smaller feedback buttons */
-  .feedback-buttons {
-    display: flex;
-    gap: 14px;
-    margin-top: 10px;
-  }
-  .feedback-buttons button {
-    font-size: 18px;
-    padding: 0 6px;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    user-select: none;
-    color: #666;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
-  }
-  .feedback-buttons button:hover {
-    color: var(--primary-color);
-    text-shadow: 0 0 7px var(--primary-color);
-  }
-  .feedback-buttons button:disabled {
-    color: #aaa;
-    cursor: default;
-    text-shadow: none;
-  }
-  /* Suggested Topics inline style */
-  .dropdown {
-    position: relative;
-    display: block;
-    margin-top: 12px;
-  }
-  .dropbtn {
-    background-color: var(--secondary-color);
-    color: white;
-    padding: 10px 18px;
-    font-size: 14px;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    width: 100%;
-    text-align: left;
-  }
-  .dropbtn:hover, .dropbtn:focus {
-    background-color: var(--hover-color);
-    outline: none;
-  }
-  #quickRepliesContent {
-    display: none;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    margin-top: 6px;
-  }
-  #quickRepliesContent button {
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    color: #003366;
-    font-weight: 600;
-    padding: 6px 10px;
-    font-size: 14px;
-    cursor: pointer;
-    border-bottom: 1px solid #ddd;
-  }
-  #quickRepliesContent button:hover,
-  #quickRepliesContent button:focus {
-    background-color: var(--secondary-color);
-    color: var(--white);
-    outline: none;
-  }
-  /* Answer expandable toggle */
-  .answer-expandable {
-    cursor: pointer;
-    color: var(--primary-color);
-    font-weight: 600;
-    margin-top: 6px;
-    user-select: none;
-  }
-  .answer-content.collapsed {
-    display: none;
-  }
-</style>
+    
+    #aiChatMessages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    #aiChatMessages::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    #aiChatMessages::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    .aiMsg {
+      max-width: 85%;
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      position: relative;
+      margin: 2px 0;
+      animation: messageSlide 0.3s ease-out;
+    }
+    
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .aiUserMsg {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+      color: var(--white);
+      border-radius: 20px 20px 4px 20px;
+      align-self: flex-end;
+      text-align: right;
+      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+    }
+    
+    .aiBotMsg {
+      background: var(--white);
+      color: #1e293b;
+      border-radius: 20px 20px 20px 4px;
+      align-self: flex-start;
+      text-align: left;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+    
+    #aiChatInputArea {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      background: var(--white);
+      padding: 12px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+    }
+    
+    #aiChatInput {
+      font-size: 14px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 2px solid #e2e8f0;
+      min-height: 20px;
+      flex-grow: 1;
+      resize: none;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      background: #f8fafc;
+    }
+    
+    #aiChatInput:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+      background: var(--white);
+    }
+    
+    #aiChatInput::placeholder {
+      color: #94a3b8;
+    }
+    
+    #aiChatSendBtn {
+      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+      border: none;
+      color: var(--white);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 80px;
+      justify-content: center;
+    }
+    
+    #aiChatSendBtn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    #aiChatSendBtn:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--hover-color) 0%, var(--accent-color) 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    }
+    
+    #aiChatSendBtn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    
+    .dropdown {
+      position: relative;
+      display: block;
+      margin-top: 16px;
+    }
+    
+    .dropbtn {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--primary-color);
+      padding: 12px 20px;
+      font-size: 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      width: 100%;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .dropbtn:hover, .dropbtn:focus {
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+      border-color: var(--secondary-color);
+      outline: none;
+      transform: translateY(-1px);
+    }
+    
+    .dropbtn::after {
+      content: '▼';
+      transition: transform 0.3s ease;
+      font-size: 12px;
+    }
+    
+    .dropbtn[aria-expanded="true"]::after {
+      transform: rotate(180deg);
+    }
+    
+    #quickRepliesContent {
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      margin-top: 8px;
+      background: var(--white);
+    }
+    
+    #quickRepliesContent::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #quickRepliesContent::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    #quickRepliesContent::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    #quickRepliesContent button {
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      color: var(--primary-color);
+      font-weight: 500;
+      padding: 12px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: all 0.3s ease;
+    }
+    
+    #quickRepliesContent button:last-child {
+      border-bottom: none;
+    }
+    
+    #quickRepliesContent button:hover,
+    #quickRepliesContent button:focus {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+      color: var(--white);
+      outline: none;
+      transform: translateX(4px);
+    }
+    
+    /* Message feedback buttons */
+    .message-feedback {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+    
+    .message-feedback:hover {
+      opacity: 1;
+    }
+    
+    .feedback-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      opacity: 0.6;
+    }
+    
+    .feedback-btn:hover {
+      background: rgba(0, 51, 102, 0.1);
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    
+    .feedback-btn.active {
+      background: rgba(0, 51, 102, 0.2);
+      opacity: 1;
+    }
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      #aiChatWidget {
+        right: 10px;
+        bottom: 10px;
+        max-width: calc(100vw - 20px);
+      }
+      
+      #aiChatBody {
+        height: 400px;
+        padding: 16px;
+      }
+      
+      #aiChatHeader {
+        padding: 12px 20px;
+      }
+      
+      .aiMsg {
+        font-size: 13px;
+        padding: 10px 14px;
+      }
+      
+      .feedback-btn {
+        font-size: 12px;
+        padding: 3px 6px;
+      }
+    }
+  </style>
 </head>
 <body>
 
 <header>
-  <div class="header-title">Settlement Training</div>
+  <div class="header-title">
+    <span>🏛️</span>
+    <span>Settlement Training Portal</span>
+  </div>
   <div class="header-buttons">
-    <button aria-label="Start the quiz" onclick="window.location.href='quiz.html'">Start Quiz</button>
-    <button aria-label="Open settings page" onclick="window.location.href='settings.html'">Settings</button>
+    <button class="btn btn-primary" onclick="window.location.href='quiz.html'">
+      <span>🚀</span>
+      <span>Start Quiz</span>
+    </button>
+    <button class="btn btn-outline" onclick="window.location.href='settings.html'">
+      <span>⚙️</span>
+      <span>Settings</span>
+    </button>
   </div>
 </header>
 
-<main aria-label="How to use Settlement Training">
-  <h2>Using This Application: Step-by-Step Instructions</h2>
-  <p>Follow these simple steps to get the most from the Settlement Training application. This guide helps new employees understand how to manage, start, and complete quizzes effectively.</p>
-  <ol>
-    <li>
-      <strong>Import Queries from a JSON File</strong><br />
-      Prepare your settlement queries beforehand. Navigate to the Settings page and select <em>Import Queries</em> to upload your JSON file with quiz content.
-    </li>
-    <li>
-      <strong>Configure Your Quiz Settings</strong><br />
-      In Settings, you can add new queries, modify existing ones, remove outdated entries, and export your current quiz data for backup or sharing.
-    </li>
-    <li>
-      <strong>Start Your Quiz</strong><br />
-      Return to the Home page and click <em>Start Quiz</em>. Choose your desired difficulty level to control quiz timing and pacing.
-    </li>
-    <li>
-      <strong>Answer the Questions</strong><br />
-      Each question will appear individually. Submit your answers before the timer expires and receive immediate feedback.
-    </li>
-    <li>
-      <strong>Review Your Performance</strong><br />
-      After completing all questions, view a detailed summary highlighting correct and incorrect answers, alongside time taken and accuracy.
-    </li>
-    <li>
-      <strong>Export Your Results</strong><br />
-      Use the <em>Export All Answers to Excel</em> option for record-keeping or reporting purposes.
-    </li>
-  </ol>
+<main>
+  <div class="card">
+    <h1>Settlement Training Portal</h1>
+    <p>A comprehensive guide to mastering settlement procedures through interactive quizzes and practice exercises. This portal is designed to help you understand and apply settlement concepts effectively.</p>
+    
+    <div class="note">
+      <p><strong>Before you begin:</strong> Make sure you have your settlement queries ready in JSON format for importing. If you need help preparing your queries, consult the documentation or contact support.</p>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Detailed Step-by-Step Guide</h2>
+    
+    <h3>Getting Started with Settlement Training</h3>
+    <p>Follow these steps carefully to make the most of your training experience:</p>
+    
+    <ol>
+      <li>
+        <strong>Prepare Your Queries</strong>
+        <p>Before starting, ensure your settlement queries are properly formatted in a JSON file. The file should contain:</p>
+        <ul>
+          <li>Question text</li>
+          <li>Possible answers (for multiple choice questions)</li>
+          <li>Correct answer designation</li>
+          <li>Category classification</li>
+        </ul>
+        
+        <div class="tip">
+          <p><strong>Tip:</strong> Use the query template provided in Settings to ensure your JSON file is formatted correctly.</p>
+        </div>
+      </li>
+      
+      <li>
+        <strong>Import Your Queries</strong>
+        <p>Navigate to the Settings page:</p>
+        <ul>
+          <li>Click on "Import Queries"</li>
+          <li>Select your JSON file</li>
+          <li>Wait for the confirmation message</li>
+          <li>Verify the imported queries in "Manage Queries"</li>
+        </ul>
+        
+        <div class="warning">
+          <p><strong>Important:</strong> Only properly formatted JSON files will be accepted. Double-check your file structure before importing.</p>
+        </div>
+      </li>
+      
+      <li>
+        <strong>Configure Quiz Settings</strong>
+        <p>Customize your quiz experience:</p>
+        <ul>
+          <li>Select your preferred difficulty level (Beginner, Intermediate, Advanced)</li>
+          <li>Choose the number of questions per quiz session</li>
+          <li>Set time limits if desired</li>
+          <li>Select specific categories to focus on</li>
+        </ul>
+      </li>
+      
+      <li>
+        <strong>Start Your Quiz Session</strong>
+        <p>From the home page:</p>
+        <ul>
+          <li>Click "Start Quiz"</li>
+          <li>Confirm your quiz settings</li>
+          <li>Begin answering questions</li>
+        </ul>
+        
+        <div class="tip">
+          <p><strong>Tip:</strong> The quiz timer begins immediately after starting, so be prepared before clicking.</p>
+        </div>
+      </li>
+      
+      <li>
+        <strong>Answer Questions Effectively</strong>
+        <p>During the quiz:</p>
+        <ul>
+          <li>Read each question carefully</li>
+          <li>Select the most appropriate answer</li>
+          <li>Submit before the timer expires (if enabled)</li>
+          <li>Utilize flagging for questions you want to review later</li>
+        </ul>
+      </li>
+      
+      <li>
+        <strong>Review Your Performance</strong>
+        <p>After completing the quiz:</p>
+        <ul>
+          <li>View your score summary</li>
+          <li>Analyze correct and incorrect answers</li>
+          <li>Review time spent per question</li>
+          <li>Identify patterns in mistakes</li>
+        </ul>
+      </li>
+      
+      <li>
+        <strong>Export Your Results</strong>
+        <p>For record-keeping or reporting:</p>
+        <ul>
+          <li>Navigate to the export options in the results page</li>
+          <li>Choose your preferred format (Excel, CSV, PDF)</li>
+          <li>Save to your preferred location</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+  
+  <div class="card feature-section">
+    <h2>Key Features</h2>
+    
+    <div class="feature">
+      <div class="feature-icon">💾</div>
+      <div class="feature-content">
+        <h3>Query Management System</h3>
+        <p>Our comprehensive query management allows you to:</p>
+        <ul>
+          <li>Create, edit, and delete settlement queries</li>
+          <li>Categorize questions for focused training</li>
+          <li>Import/export question banks in JSON format</li>
+          <li>Clone existing quizzes for customization</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <div class="feature-content">
+        <h3>Adaptive Quiz Engine</h3>
+        <p>Intelligent quiz system that offers:</p>
+        <ul>
+          <li>Multiple difficulty levels</li>
+          <li>Customizable question quantities</li>
+          <li>Time-limited challenge modes</li>
+          <li>Progress tracking across sessions</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">📈</div>
+      <div class="feature-content">
+        <h3>Analytics Dashboard</h3>
+        <p>Detailed performance analysis including:</p>
+        <ul>
+          <li>Accuracy by question type</li>
+          <li>Time management statistics</li>
+          <li>Progress over time graphs</li>
+          <li>Weakness identification</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="note">
+      <p><strong>Pro Tip:</strong> Use the AI Assistant (available via the chat widget) for personalized recommendations based on your performance patterns.</p>
+    </div>
+  </div>
 </main>
 
-<!-- AI Chat widget -->
-<div id="aiChatWidget" role="dialog" aria-modal="true" aria-label="AI Assistant Chat" class="collapsed">
-  <div id="aiChatHeader" tabindex="0" aria-expanded="false" aria-controls="aiChatBody" aria-haspopup="true" aria-pressed="false">
-    <span>Training Assistant</span>
-    <span id="aiChatToggleIcon" aria-hidden="true">&#x25B2;</span>
+<!-- Enhanced AI Assistant Chat Widget -->
+<div id="aiChatWidget" class="collapsed">
+  <div id="aiChatHeader" tabindex="0" aria-expanded="false" aria-pressed="false">
+    <div class="ai-header-content">
+      <div class="ai-status-dot"></div>
+      <span>AI Assistant</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+      <button id="clearChatBtn" title="Clear Chat" aria-label="Clear Chat">
+        <span>🗑️</span>
+      </button>
+      <span id="aiChatToggleIcon">▼</span>
+    </div>
   </div>
   <div id="aiChatBody">
-    <div id="typingIndicator" aria-live="polite" aria-atomic="true" role="status"></div>
-    <div id="aiChatMessages" aria-live="polite" aria-atomic="true" role="log"></div>
-    <form id="aiChatForm" autocomplete="off" onsubmit="return false;">
+    <div id="typingIndicator">
+      <span>AI is typing</span>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+    <div id="aiChatMessages"></div>
+    <form id="aiChatForm" autocomplete="off">
       <div id="aiChatInputArea">
-        <input id="aiChatInput" type="text" aria-label="Type your question here" placeholder="Ask me anything..." />
-        <button id="aiChatSendBtn" disabled aria-disabled="true" aria-label="Send question" type="submit">Send</button>
+        <input type="text" id="aiChatInput" placeholder="Ask me anything about settlements..." aria-label="Type your message" required>
+        <button id="aiChatSendBtn" type="submit" disabled>
+          <span>Send</span>
+          <span>📤</span>
+        </button>
       </div>
     </form>
-    <button id="clearChatBtn" aria-label="Clear chat conversation" title="Clear chat conversation">Clear Chat</button>
-    <!-- Suggested Topics collapsible container -->
-    <div class="dropdown" id="quickRepliesDropdown" style="margin-top: 12px;">
-      <button class="dropbtn" 
-              aria-haspopup="true" 
-              aria-expanded="false" 
-              id="dropdownToggleBtn" 
-              aria-label="Show suggested questions"
-              type="button">
-        Suggested Topics ▼
+    <div class="dropdown" id="quickRepliesDropdown">
+      <button class="dropbtn" id="dropdownToggleBtn" aria-expanded="false">
+        <span>💡 Suggested Topics</span>
       </button>
-      <div class="dropdown-content" id="quickRepliesContent" role="list" aria-labelledby="dropdownToggleBtn" tabindex="-1" aria-hidden="true">
-        <!-- Suggested topic buttons will be appended here dynamically -->
-      </div>
+      <div class="dropdown-content" id="quickRepliesContent" role="list" aria-labelledby="dropdownToggleBtn" tabindex="-1" aria-hidden="true"></div>
     </div>
   </div>
 </div>
