@@ -8,7 +8,6 @@
   const chatSendBtn = document.getElementById('aiChatSendBtn');
   const clearChatBtn = document.getElementById('clearChatBtn');
   const typingIndicator = document.getElementById('typingIndicator');
-
   const dropdownToggleBtn = document.getElementById('dropdownToggleBtn');
   const quickRepliesContent = document.getElementById('quickRepliesContent');
 
@@ -79,23 +78,19 @@
   // Toggle chat panel open/close with smooth animation
   function toggleChat() {
     chatOpen = !chatOpen;
+    chatWidget.classList.toggle('collapsed', !chatOpen);
+    toggleIcon.classList.toggle('open', chatOpen);
+    chatBody.style.display = chatOpen ? 'flex' : 'none';
+    chatHeader.setAttribute('aria-expanded', chatOpen);
+    chatHeader.setAttribute('aria-pressed', chatOpen);
     if (chatOpen) {
-      chatWidget.classList.remove('collapsed');
-      toggleIcon.classList.add('open');
-      chatBody.style.display = 'flex';
       chatInput.focus();
-      chatHeader.setAttribute('aria-expanded', 'true');
-      chatHeader.setAttribute('aria-pressed', 'true');
       scrollMessagesToBottom();
     } else {
-      chatWidget.classList.add('collapsed');
-      toggleIcon.classList.remove('open');
-      chatBody.style.display = 'none';
-      chatHeader.setAttribute('aria-expanded', 'false');
-      chatHeader.setAttribute('aria-pressed', 'false');
       hideSuggestions();
     }
   }
+
   chatHeader.addEventListener('click', toggleChat);
   chatHeader.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -117,14 +112,10 @@
   }
 
   // Append message to chat
-  function appendMessage(text, isUser, isHTML = false) {
+  function appendMessage(text, isUser , isHTML = false) {
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'aiMsg ' + (isUser ? 'aiUserMsg' : 'aiBotMsg');
-    if (isHTML) {
-      msgDiv.innerHTML = text;
-    } else {
-      msgDiv.textContent = text;
-    }
+    msgDiv.className = 'aiMsg ' + (isUser  ? 'aiUser Msg' : 'aiBotMsg');
+    msgDiv.innerHTML = isHTML ? text : text;
     chatMessages.appendChild(msgDiv);
     scrollMessagesToBottom();
   }
@@ -182,15 +173,9 @@
 
     toggleBtn.addEventListener('click', () => {
       const isCollapsed = fullTextDiv.classList.contains('collapsed');
-      if (isCollapsed) {
-        fullTextDiv.classList.remove('collapsed');
-        previewDiv.style.display = 'none';
-        toggleBtn.textContent = 'Show less';
-      } else {
-        fullTextDiv.classList.add('collapsed');
-        previewDiv.style.display = 'block';
-        toggleBtn.textContent = 'Show more';
-      }
+      fullTextDiv.classList.toggle('collapsed', isCollapsed);
+      previewDiv.style.display = isCollapsed ? 'none' : 'block';
+      toggleBtn.textContent = isCollapsed ? 'Show less' : 'Show more';
     });
 
     container.appendChild(previewDiv);
@@ -293,11 +278,7 @@
 
   // Typing indicator control
   function showTypingIndicator(show) {
-    if (show) {
-      typingIndicator.textContent = 'Training Assistant is typing...';
-    } else {
-      typingIndicator.textContent = '';
-    }
+    typingIndicator.textContent = show ? 'AI Assistant is typing...' : '';
   }
 
   // Greeting detection ignoring punctuation
@@ -395,17 +376,10 @@
   // Show/hide suggested topics inline list with inert attribute management
   function toggleSuggestions() {
     suggestionsVisible = !suggestionsVisible;
-    if (suggestionsVisible) {
-      quickRepliesContent.style.display = 'block';
-      dropdownToggleBtn.setAttribute('aria-expanded', 'true');
-      dropdownToggleBtn.textContent = 'Suggested Topics ▲';
-      quickRepliesContent.removeAttribute('inert'); // Remove inert when shown
-    } else {
-      quickRepliesContent.style.display = 'none';
-      dropdownToggleBtn.setAttribute('aria-expanded', 'false');
-      dropdownToggleBtn.textContent = 'Suggested Topics ▼';
-      quickRepliesContent.setAttribute('inert', 'true'); // Add inert when hidden
-    }
+    quickRepliesContent.style.display = suggestionsVisible ? 'block' : 'none';
+    dropdownToggleBtn.setAttribute('aria-expanded', suggestionsVisible);
+    dropdownToggleBtn.textContent = suggestionsVisible ? 'Suggested Topics ▲' : 'Suggested Topics ▼';
+    quickRepliesContent.toggleAttribute('inert', !suggestionsVisible); // Toggle inert attribute
   }
 
   function hideSuggestions() {
@@ -416,9 +390,7 @@
     quickRepliesContent.setAttribute('inert', 'true'); // Ensure inert when hidden
   }
 
-  dropdownToggleBtn.addEventListener('click', () => {
-    toggleSuggestions();
-  });
+  dropdownToggleBtn.addEventListener('click', toggleSuggestions);
 
   // Close suggestions if clicked outside the toggle or the list
   document.addEventListener('click', (e) => {
